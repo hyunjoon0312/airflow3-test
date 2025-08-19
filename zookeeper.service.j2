@@ -1,0 +1,18 @@
+# Managed by Ansible
+[Unit]
+Description=Apache ZooKeeper Server
+After=network.target
+
+[Service]
+Type=simple
+User={{ zookeeper_user }}
+Group={{ zookeeper_group }}
+EnvironmentFile=-/etc/sysconfig/zookeeper
+ExecStart={{ zookeeper_current_symlink }}/bin/zkServer.sh start-foreground {{ zookeeper_conf_dir }}/zoo.cfg
+Restart=on-failure
+RestartSec=3
+LimitNOFILE={{ zookeeper_limit_nofile }}
+WorkingDirectory={{ zookeeper_current_symlink }}
+
+[Install]
+WantedBy=multi-user.target
