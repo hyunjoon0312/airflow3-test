@@ -1,0 +1,1 @@
+{{ hostvars[inventory_hostname].zookeeper_myid | default(groups['zookeepers'].index(inventory_hostname) + 1) }}
