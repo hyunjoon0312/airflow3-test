@@ -1,0 +1,37 @@
+---
+- name: Prepare OS, user, and directories for ZooKeeper
+  hosts: zookeepers
+  become: true
+
+  tasks:
+    - name: Ensure Java is installed
+      ansible.builtin.package:
+        name: "{{ zookeeper_java_package }}"
+        state: present
+
+    - name: Ensure group exists
+      ansible.builtin.group:
+        name: "{{ zookeeper_group }}"
+        system: true
+
+    - name: Ensure user exists
+      ansible.builtin.user:
+        name: "{{ zookeeper_user }}"
+        group: "{{ zookeeper_group }}"
+        shell: /sbin/nologin
+        home: "{{ zookeeper_data_dir | dirname }}"   # /var/lib/zookeeper
+        system: true
+        create_home: false
+
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ zookeeper_user }}"
+        group: "{{ zookeeper_group }}"
+        mode: "{{ item.mode | default('0750') }}"
+      loop:
+        - { path: "{{ zookeeper_conf_dir }}", mode: "0755" }
+        - { path: "{{ zookeeper_data_dir }}" }
+        - { path: "{{ zookeeper_datalog_dir }}" }
+        - { path: "{{ zookeeper_log_dir }}" }
