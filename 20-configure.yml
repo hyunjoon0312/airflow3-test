@@ -1,0 +1,46 @@
+---
+- name: Configure ZooKeeper files
+  hosts: zookeepers
+  become: true
+
+  pre_tasks:
+    - name: Compute zk_myid and announce_host (fallbacks)
+      ansible.builtin.set_fact:
+        zk_myid: "{{ hostvars[inventory_hostname].zookeeper_myid
+                    | default(groups['zookeepers'].index(inventory_hostname) + 1) }}"
+        zk_announce_host: "{{ hostvars[inventory_hostname].zookeeper_announce_host
+                              | default(inventory_hostname) }}"
+
+  tasks:
+    - name: Render zoo.cfg
+      ansible.builtin.template:
+        src: "../templates/zoo.cfg.j2"
+        dest: "{{ zookeeper_conf_dir }}/zoo.cfg"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart zookeeper
+
+    - name: Render myid
+      ansible.builtin.template:
+        src: "../templates/myid.j2"
+        dest: "{{ zookeeper_data_dir }}/myid"
+        owner: "{{ zookeeper_user }}"
+        group: "{{ zookeeper_group }}"
+        mode: "0640"
+
+    - name: Render /etc/sysconfig/zookeeper
+      ansible.builtin.template:
+        src: "../templates/sysconfig-zookeeper.j2"
+        dest: "/etc/sysconfig/zookeeper"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: restart zookeeper
+
+  handlers:
+    - name: restart zookeeper
+      ansible.builtin.systemd:
+        name: zookeeper
+        state: restarted
+      listen: restart zookeeper
