@@ -1,0 +1,25 @@
+---
+- name: Install ZooKeeper binaries
+  hosts: zookeepers
+  become: true
+
+  tasks:
+    - name: Download ZooKeeper tarball
+      ansible.builtin.get_url:
+        url: "{{ zookeeper_download_url }}"
+        dest: "/tmp/{{ zookeeper_dist_name }}.tar.gz"
+        mode: "0644"
+        force: false
+
+    - name: Unarchive ZooKeeper
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ zookeeper_dist_name }}.tar.gz"
+        dest: "{{ zookeeper_base_dir }}"
+        remote_src: true
+        creates: "{{ zookeeper_install_dir }}"
+
+    - name: Symlink /opt/zookeeper/current
+      ansible.builtin.file:
+        src: "{{ zookeeper_install_dir }}"
+        dest: "{{ zookeeper_current_symlink }}"
+        state: link
