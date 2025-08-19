@@ -1,0 +1,5 @@
+---
+- import_playbook: 00-prepare.yml
+- import_playbook: 10-install.yml
+- import_playbook: 20-configure.yml
+- import_playbook: 30-service.yml
